@@ -1,8 +1,10 @@
-## Setup a Kubernetes cluster on Google Cloud Platform
+## 쿠버네티스 환경 취득
 
-You'll need a [Google Cloud Platform account](https://cloud.google.com/), a [Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects), and [gcloud SDK](https://cloud.google.com/sdk/).
+구글 계정이 있으면, 기본 1년치 계정을 얻을 실 수 있습니다 - [Google Cloud Platform account](https://cloud.google.com/), 
 
-First, create a new Kubernetes cluster to take advantage of Kubernetes webook to inject initializer:
+프로젝트를 하나 생성하신 후 [Project](https://cloud.google.com/resource-manager/docs/creating-managing-projects), GCloud SDK 를 설정하세요 - [gcloud SDK](https://cloud.google.com/sdk/).
+
+아래의 gcloud 명령으로 쿠버네티스 클러스터를 생성할 수 있습니다:
 ```
 $ export ISTIO_PROJECT_ID=$(gcloud config get-value core/project)
 $ gcloud --project=$ISTIO_PROJECT_ID alpha container clusters create istio-cluster \
@@ -10,22 +12,22 @@ $ gcloud --project=$ISTIO_PROJECT_ID alpha container clusters create istio-clust
   --cluster-version=1.9.2-gke.1
 ```
 
-Once the cluster was created, make sure your user account has admin role within the Kubernetes cluster:
+클러스터가 생성된 후에 내 gcloud 계정에 쿠버네티스의 어드민 권한을 부여해주어야 이후 작업들을 수행할 수 있습니다:
 ```
 $ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud config get-value core/account)
 ```
 
 ## Install Istio
 
-Install Istio CLI. Download [Istio 0.5.1 release](https://github.com/istio/istio/releases/tag/0.5.1).
-Unpack the package and add it to your PATH, e.g.:
+이스티오를 설치합니다. [Istio 0.5.1 release](https://github.com/istio/istio/releases/tag/0.5.1).
+패키지를 Unpack 하고 istioctl 명령을 PATH에 잡아줍니다:
 
 ```
 $ tar xzvf istio-0.5.1_osx.tar.gz
 $ export PATH="$PATH:$HOME/istio-0.5.1/bin"
 ```
 
-Install Istio Service Mesh in Kubernetes, without Auth. (Auth causes trouble with health check and readiness check at the moment).
+ Auth 모듈을 제외한 Istio 를 설치해줍니다. (현재 Auth 가 liveness 및 readiness check 에 문제가 좀 있다고 합니다)
 ```
 $ cd ~/istio-0.5.1
 $ kubectl apply -f install/kubernetes/istio.yaml
@@ -43,7 +45,8 @@ $ kubectl apply -f install/kubernetes/addons/servicegraph.yaml
 Install Istio Injector Webhook - follow the [Istio injector installation guide](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection).
 Also, don't forget to mark default namespace as injection enabled:
 ```
-$ kubectl label namespace default istio-injection=enabled
+kubectl create namespace istio-by-java
+kubectl label namespace istio-by-java istio-injection=enabled
 ```
 
 Check the status and make sure all the components are in running state before continuing:

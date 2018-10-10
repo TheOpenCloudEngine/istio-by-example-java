@@ -23,38 +23,32 @@ $ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-
 패키지를 Unpack 하고 istioctl 명령을 PATH에 잡아줍니다:
 
 ```
-$ tar xzvf istio-0.5.1_osx.tar.gz
-$ export PATH="$PATH:$HOME/istio-0.5.1/bin"
+curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.0.0 sh -
+cd ./istio-*
+export PATH=$PWD/bin:$PATH  # istioctl 명령을 어디서나 쓸 수 있게
+
 ```
 
- Auth 모듈을 제외한 Istio 를 설치해줍니다. (현재 Auth 가 liveness 및 readiness check 에 문제가 좀 있다고 합니다)
+CRD와 Auth 모듈을 제외한 Istio 플러그인 들을 설치해줍니다. (현재 Auth 가 liveness 및 readiness check 에 문제가 좀 있다고 합니다)
 ```
-$ cd ~/istio-0.5.1
-$ kubectl apply -f install/kubernetes/istio.yaml
-```
-
-Install Add-ons for Grafana, Prometheus, and Zipkin:
-```
-$ cd ~/istio-0.2.7
-$ kubectl apply -f install/kubernetes/addons/zipkin.yaml
-$ kubectl apply -f install/kubernetes/addons/grafana.yaml
-$ kubectl apply -f install/kubernetes/addons/prometheus.yaml
-$ kubectl apply -f install/kubernetes/addons/servicegraph.yaml
+# install Custom Resource Definitions for istio 
+kubectl apply -f install/kubernetes/helm/istio/templates/crds.yaml
+sleep 5
+kubectl apply -f install/kubernetes/istio-demo-auth.yaml
 ```
 
-Install Istio Injector Webhook - follow the [Istio injector installation guide](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection).
-Also, don't forget to mark default namespace as injection enabled:
+namespace 로 istio-by-java 를 만들어주고, 해당 namespace 가 자동으로 istio 의 영향이 적용되도록 해줍니다.
 ```
 kubectl create namespace istio-by-java
 kubectl label namespace istio-by-java istio-injection=enabled
 ```
 
-Check the status and make sure all the components are in running state before continuing:
+이스티오가 제대로 설치되었는지 확인한 후:
 ```
 $ kubectl get pods -n istio-system
 ```
 
-Enable firewall to allow connection to the Istio ingress:
+istio-ingress gateway 에 대해 방화벽을 열어줍니다.:
 ```
 $ gcloud --project=$ISTIO_PROJECT_ID compute firewall-rules create allow-istio-ingress \ 
   --allow tcp:$(kubectl get svc istio-ingress -n istio-system -o jsonpath='{.spec.ports[0].nodePort}')

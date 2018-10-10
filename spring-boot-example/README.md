@@ -8,7 +8,7 @@ $ cd istio-by-example-java/spring-boot-example
 
 Deploy the application:
 ```
-$ kubectl apply -f kubernetes/
+$ kubectl apply -n istio-by-java -f kubernetes/
 ```
 
 Notice that the YAML files are just regular Kubernetes deployment YAML. This is because Istio 0.2+ can use Kubernetes initializer feature.
